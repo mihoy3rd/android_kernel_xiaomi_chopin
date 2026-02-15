@@ -851,57 +851,6 @@ static void smap_gather_stats(struct vm_area_struct *vma,
 /* Show the contents common for smaps and smaps_rollup */
 static void __show_smap(struct seq_file *m, const struct mem_size_stats *mss)
 {
-
-#ifdef CONFIG_KSU_SUSFS_SUS_MAP
-	if (vma->vm_file &&
-		unlikely(test_bit(AS_FLAGS_SUS_MAP, &file_inode(vma->vm_file)->i_mapping->flags) &&
-		susfs_is_current_proc_umounted()))
-	{
-	show_map_vma(m, vma, is_pid);
-
-	if (vma_get_anon_name(vma)) {
-		seq_puts(m, "Name:           ");
-		seq_print_vma_name(m, vma);
-		seq_putc(m, '\n');
-	}
-
-	seq_printf(m,
-		   "Rss:            %8lu kB\n"
-		   "Pss:            %8lu kB\n"
-		   "Shared_Clean:   %8lu kB\n"
-		   "Shared_Dirty:   %8lu kB\n"
-		   "Private_Clean:  %8lu kB\n"
-		   "Private_Dirty:  %8lu kB\n"
-		   "Referenced:     %8lu kB\n"
-		   "Anonymous:      %8lu kB\n"
-		   "LazyFree:       %8lu kB\n"
-		   "AnonHugePages:  %8lu kB\n"
-		   "ShmemPmdMapped: %8lu kB\n"
-		   "Shared_Hugetlb: %8lu kB\n"
-		   "Private_Hugetlb: %7lu kB\n"
-		   "Swap:           %8lu kB\n"
-		   "SwapPss:        %8lu kB\n"
-		   "Locked:         %8lu kB\n",
-		   mss->resident >> 10,
-		   (unsigned long)(mss->pss >> (10 + PSS_SHIFT)),
-		   mss->shared_clean  >> 10,
-		   mss->shared_dirty  >> 10,
-		   mss->private_clean >> 10,
-		   mss->private_dirty >> 10,
-		   mss->referenced >> 10,
-		   mss->anonymous >> 10,
-		   mss->lazyfree >> 10,
-		   mss->anonymous_thp >> 10,
-		   mss->shmem_thp >> 10,
-		   mss->shared_hugetlb >> 10,
-		   mss->private_hugetlb >> 10,
-		   mss->swap >> 10,
-		   (unsigned long)(mss->swap_pss >> (10 + PSS_SHIFT)),
-		   (unsigned long)(mss->pss_locked >> (10 + PSS_SHIFT)));
-		   goto bypass_orig_flow;
-	}
-#endif
-
 	seq_printf(m,
 		   "Rss:            %8lu kB\n"
 		   "Pss:            %8lu kB\n"
@@ -953,6 +902,11 @@ static int show_smap(struct seq_file *m, void *v)
 		seq_putc(m, '\n');
 	}
 
+#ifdef CONFIG_KSU_SUSFS_SUS_MAP
+	if (vma->vm_file &&
+		unlikely(test_bit(AS_FLAGS_SUS_MAP, &file_inode(vma->vm_file)->i_mapping->flags) &&
+		susfs_is_current_proc_umounted()))
+	{
 	seq_printf(m,
 		   "Size:           %8lu kB\n"
 		   "KernelPageSize: %8lu kB\n"
@@ -960,6 +914,23 @@ static int show_smap(struct seq_file *m, void *v)
 		   (vma->vm_end - vma->vm_start) >> 10,
 		   vma_kernel_pagesize(vma) >> 10,
 		   vma_mmu_pagesize(vma) >> 10);
+		seq_puts(m, "VmFlags: mr mw me");
+		seq_putc(m, '\n');
+		goto bypass_orig_flow;
+	}
+#endif
+
+	seq_printf(m,
+		   "Size:           %8lu kB\n"
+		   "KernelPageSize: %8lu kB\n"
+		   "MMUPageSize:    %8lu kB\n",
+		   (vma->vm_end - vma->vm_start) >> 10,
+		   vma_kernel_pagesize(vma) >> 10,
+		   vma_mmu_pagesize(vma) >> 10);
+
+#ifdef CONFIG_KSU_SUSFS_SUS_MAP
+bypass_orig_flow:
+#endif
 
 	__show_smap(m, &mss);
 
