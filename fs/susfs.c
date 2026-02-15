@@ -973,7 +973,7 @@ static int susfs_handle_sdcard_inode_event(struct fsnotify_group *group,
         const unsigned char *file_name, u32 cookie,
         struct fsnotify_iter_info *iter_info)
 {
-	if (!file_name || stelen(file_name) != 7 ||
+	if (!file_name || strlen(file_name) != 7 ||
 	    memcmp(file_name, "Android", 7))
 		return 0;
 
@@ -1002,7 +1002,7 @@ static int add_mark_on_inode(struct inode *inode, u32 mask,
 	fsnotify_init_mark(m, g);
 	m->mask = mask;
 
-	if (fsnotify_add_inode_mark(m, m->group, inode, 0)) {
+	if (fsnotify_add_mark(m, inode, NULL, 0)) {
 		fsnotify_put_mark(m);
 		return -EINVAL;
 	}
