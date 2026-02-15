@@ -36,7 +36,7 @@ jobs:
     - name: 下载内核源码
       run: |
         cd $GITHUB_WORKSPACE/kernel_workspace
-        git clone --depth=1 https://github.com/ShirokoNeko-Kernel/android_kernel_xiaomi_mt6893.git -b chopin android-kernel
+        git clone --depth=1 https://github.com/mihoy3rd/android_kernel_xiaomi_chopin.git android-kernel
         cd android-kernel
 
     - name: 添加 Debug
